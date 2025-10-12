@@ -22,6 +22,7 @@ class AppController extends Controller
      */
     public function create()
     {
+
         return view('apps.create');
     }
 

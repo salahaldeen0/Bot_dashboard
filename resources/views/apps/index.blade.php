@@ -65,28 +65,20 @@
                                                     <span class="text-secondary text-xs font-weight-bold">{{ $app->created_at->format('M d, Y') }}</span>
                                                 </td>
                                                 <td class="align-middle">
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-link text-secondary mb-0" type="button" id="dropdownMenuButton{{ $app->id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <i class="fa fa-ellipsis-v text-xs"></i>
-                                                        </button>
-                                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $app->id }}">
-                                                            <li><a class="dropdown-item" href="{{ route('apps.show', $app->id) }}">
-                                                                <i class="material-icons text-sm me-2">visibility</i> View
-                                                            </a></li>
-                                                            <li><a class="dropdown-item" href="{{ route('apps.edit', $app->id) }}">
-                                                                <i class="material-icons text-sm me-2">edit</i> Edit
-                                                            </a></li>
-                                                            <li><hr class="dropdown-divider"></li>
-                                                            <li>
-                                                                <form action="{{ route('apps.destroy', $app->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this app?')">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                    <button type="submit" class="dropdown-item text-danger">
-                                                                        <i class="material-icons text-sm me-2">delete</i> Delete
-                                                                    </button>
-                                                                </form>
-                                                            </li>
-                                                        </ul>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="{{ route('apps.show', $app->id) }}" class="btn btn-outline-info btn-sm" title="View">
+                                                            <i class="material-icons text-sm">visibility</i>
+                                                        </a>
+                                                        <a href="{{ route('apps.edit', $app->id) }}" class="btn btn-outline-warning btn-sm" title="Edit">
+                                                            <i class="material-icons text-sm">edit</i>
+                                                        </a>
+                                                        <form action="{{ route('apps.destroy', $app->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this app?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                                                                <i class="material-icons text-sm">delete</i>
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </td>
                                             </tr>
