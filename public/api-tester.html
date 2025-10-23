@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Bot Dashboard API Tester</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                margin-bottom: 20px;
+            }
+            h1 {
+                color: #333;
+                text-align: center;
+            }
+            .endpoint {
+                margin-bottom: 20px;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                background: #f9f9f9;
+            }
+            .endpoint h3 {
+                margin-top: 0;
+                color: #0066cc;
+            }
+            button {
+                background: #0066cc;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-right: 10px;
+            }
+            button:hover {
+                background: #0052a3;
+            }
+            .result {
+                background: #f0f0f0;
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-top: 10px;
+                border-radius: 4px;
+                white-space: pre-wrap;
+                max-height: 300px;
+                overflow-y: auto;
+            }
+            .input-group {
+                margin: 10px 0;
+            }
+            label {
+                display: inline-block;
+                width: 120px;
+                font-weight: bold;
+            }
+            input[type="text"],
+            input[type="number"] {
+                padding: 5px;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                width: 200px;
+            }
+            .base-url {
+                background: #e7f3ff;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Bot Dashboard API Tester</h1>
+
+        <div class="container">
+            <div class="base-url">
+                <strong>Base URL:</strong>
+                <span id="baseUrl">https://ip-teamway.com/api</span>
+                <br />
+                <small
+                    >For local testing, change to:
+                    http://localhost:8000/api</small
+                >
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="endpoint">
+                <h3>1. API Test</h3>
+                <p><strong>GET</strong> /test</p>
+                <button onclick="testApi()">Test API</button>
+                <div id="testResult" class="result" style="display: none"></div>
+            </div>
+
+            <div class="endpoint">
+                <h3>2. API Information</h3>
+                <p><strong>GET</strong> /info</p>
+                <button onclick="getApiInfo()">Get API Info</button>
+                <div id="infoResult" class="result" style="display: none"></div>
+            </div>
+
+            <div class="endpoint">
+                <h3>3. Get All Apps</h3>
+                <p><strong>GET</strong> /apps</p>
+                <div class="input-group">
+                    <label>Page:</label>
+                    <input type="number" id="page" value="1" min="1" />
+                </div>
+                <div class="input-group">
+                    <label>Per Page:</label>
+                    <input
+                        type="number"
+                        id="perPage"
+                        value="15"
+                        min="1"
+                        max="100"
+                    />
+                </div>
+                <div class="input-group">
+                    <label>Search:</label>
+                    <input
+                        type="text"
+                        id="search"
+                        placeholder="Search apps..."
+                    />
+                </div>
+                <div class="input-group">
+                    <label>Database Type:</label>
+                    <input
+                        type="text"
+                        id="databaseType"
+                        placeholder="mysql, postgresql, etc."
+                    />
+                </div>
+                <button onclick="getAllApps()">Get Apps</button>
+                <div id="appsResult" class="result" style="display: none"></div>
+            </div>
+
+            <div class="endpoint">
+                <h3>4. Get Single App</h3>
+                <p><strong>GET</strong> /apps/{id}</p>
+                <div class="input-group">
+                    <label>App ID:</label>
+                    <input type="number" id="appId" value="1" min="1" />
+                </div>
+                <button onclick="getSingleApp()">Get App</button>
+                <div
+                    id="singleAppResult"
+                    class="result"
+                    style="display: none"
+                ></div>
+            </div>
+
+            <div class="endpoint">
+                <h3>5. Get Apps Statistics</h3>
+                <p><strong>GET</strong> /apps/stats</p>
+                <button onclick="getAppStats()">Get Statistics</button>
+                <div
+                    id="statsResult"
+                    class="result"
+                    style="display: none"
+                ></div>
+            </div>
+        </div>
+
+        <script>
+            // You can change this for local testing
+            const BASE_URL = "https://ip-teamway.com/api";
+            // const BASE_URL = 'http://localhost:8000/api'; // Uncomment for local testing
+
+            document.getElementById("baseUrl").textContent = BASE_URL;
+
+            async function makeRequest(endpoint, resultElementId) {
+                const resultElement = document.getElementById(resultElementId);
+                resultElement.style.display = "block";
+                resultElement.textContent = "Loading...";
+
+                try {
+                    const response = await fetch(BASE_URL + endpoint);
+                    const data = await response.json();
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                } catch (error) {
+                    resultElement.textContent = "Error: " + error.message;
+                }
+            }
+
+            function testApi() {
+                makeRequest("/test", "testResult");
+            }
+
+            function getApiInfo() {
+                makeRequest("/info", "infoResult");
+            }
+
+            function getAllApps() {
+                const page = document.getElementById("page").value;
+                const perPage = document.getElementById("perPage").value;
+                const search = document.getElementById("search").value;
+                const databaseType =
+                    document.getElementById("databaseType").value;
+
+                let endpoint = "/apps?";
+                const params = [];
+
+                if (page) params.push(`page=${page}`);
+                if (perPage) params.push(`per_page=${perPage}`);
+                if (search) params.push(`search=${encodeURIComponent(search)}`);
+                if (databaseType)
+                    params.push(
+                        `database_type=${encodeURIComponent(databaseType)}`
+                    );
+
+                endpoint += params.join("&");
+                makeRequest(endpoint, "appsResult");
+            }
+
+            function getSingleApp() {
+                const appId = document.getElementById("appId").value;
+                if (!appId) {
+                    alert("Please enter an App ID");
+                    return;
+                }
+                makeRequest(`/apps/${appId}`, "singleAppResult");
+            }
+
+            function getAppStats() {
+                makeRequest("/apps/stats", "statsResult");
+            }
+        </script>
+    </body>
+</html>
