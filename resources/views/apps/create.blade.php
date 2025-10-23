@@ -311,13 +311,7 @@
                                                                         </div>
                                                                         <small class="text-muted">System administrator role (cannot be modified)</small>
                                                                     </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="input-group input-group-outline mb-3 is-filled">
-                                                                            <label class="form-label">Description</label>
-                                                                            <input type="text" name="roles[0][description]" class="form-control" value="Full system access and management capabilities">
-                                                                        </div>
-                                                                        <small class="text-muted">Role description and purpose</small>
-                                                                    </div>
+                                                                
                                                                 </div>
                                                             </div>
                                                         </div>
