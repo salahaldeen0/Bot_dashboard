@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-Use Str;
-Use Hash;
+use Str;
+use Hash;
 use Illuminate\Auth\Events\PasswordReset;
 use App\Models\User;
 use Illuminate\Http\Request;
