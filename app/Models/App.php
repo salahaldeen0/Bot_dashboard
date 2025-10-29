@@ -56,6 +56,16 @@ class App extends Model
         return $this->hasMany(SchemaTable::class);
     }
 
+    public function users()
+    {
+        return $this->hasMany(AppUser::class);
+    }
+
+    public function roles()
+    {
+        return $this->hasMany(AppRole::class);
+    }
+
     /**
      * Check if Schema tab should be visible
      * Schema tab shows after successful database connection

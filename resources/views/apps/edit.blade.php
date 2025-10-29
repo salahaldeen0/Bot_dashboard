@@ -361,17 +361,43 @@
                                     <div class="tab-pane fade" id="roles" role="tabpanel" aria-labelledby="roles-tab">
                                         <div class="row mt-4">
                                             <div class="col-12">
-                                                <div class="text-center py-5">
-                                                    <div class="icon icon-lg icon-shape bg-gradient-warning shadow mx-auto mb-3">
-                                                        <i class="material-icons text-white" style="font-size: 48px;">group</i>
+                                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                                    <div>
+                                                        <h5 class="text-primary mb-1">Roles Management</h5>
+                                                        <p class="text-sm text-muted mb-0">Create and manage roles for your application</p>
                                                     </div>
-                                                    <h5 class="text-primary mt-3">Roles Management</h5>
-                                                    <p class="text-muted">Roles management features will be available in a future update.</p>
-                                                    <p class="text-sm text-secondary">This section will allow you to create roles and define specific access levels.</p>
-                                                    <div class="mt-4">
-                                                        <button type="button" class="btn btn-primary" disabled>
-                                                            <i class="material-icons me-1">add</i> Create Role
+                                                    <div>
+                                                        <button type="button" class="btn btn-primary btn-sm" id="addRoleBtn">
+                                                            <i class="material-icons me-1" style="font-size: 16px;">add</i>
+                                                            Add Role
                                                         </button>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div id="roles-loading" class="text-center py-5" style="display: none;">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                    <p class="mt-3 text-muted">Loading roles...</p>
+                                                </div>
+
+                                                <div id="roles-container">
+                                                    <div class="card">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-hover align-items-center mb-0">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Role Name</th>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Description</th>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Created At</th>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Actions</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="roles-table-body">
+                                                                    <!-- Roles will be loaded here via AJAX -->
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -443,9 +469,9 @@
                             <label for="newUserRole" class="form-label">Role</label>
                             <select class="form-select" id="newUserRole" name="role">
                                 <option value="">Select Role (optional)</option>
-                                <!-- Roles will be populated dynamically when implemented -->
+                                <!-- Roles will be populated dynamically -->
                             </select>
-                            <small class="text-muted">Role assignment will be available soon</small>
+                            <small class="text-muted">Assign a role to this user</small>
                         </div>
                     </form>
                     <div id="addUserAlert" style="display:none;" class="alert alert-info mt-2"></div>
@@ -453,6 +479,36 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" id="submitAddUserBtn">Create User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Role Modal -->
+    <div class="modal fade" id="addRoleModal" tabindex="-1" aria-labelledby="addRoleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRoleModalLabel">Add Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addRoleForm">
+                        <input type="hidden" id="editRoleId" value="">
+                        <div class="mb-3">
+                            <label for="newRoleName" class="form-label">Role Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="newRoleName" name="role_name" required placeholder="e.g., Admin, User, Manager">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newRoleDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="newRoleDescription" name="description" rows="3" placeholder="Describe the role's purpose and permissions"></textarea>
+                        </div>
+                    </form>
+                    <div id="addRoleAlert" style="display:none;" class="alert alert-info mt-2"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="submitAddRoleBtn">Create Role</button>
                 </div>
             </div>
         </div>

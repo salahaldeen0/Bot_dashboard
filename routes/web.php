@@ -8,6 +8,7 @@ use App\Http\Controllers\SessionsController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\SchemaController;
 use App\Http\Controllers\AppUserController;
+use App\Http\Controllers\AppRoleController;
 
 // Redirect root to sign-in
 Route::get('/', function () {return redirect('sign-in');})->middleware('guest');
@@ -53,4 +54,10 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('apps/{app}/users', [AppUserController::class, 'store'])->name('app-users.store');
 	Route::put('apps/{app}/users/{user}', [AppUserController::class, 'update'])->name('app-users.update');
 	Route::delete('apps/{app}/users/{user}', [AppUserController::class, 'destroy'])->name('app-users.destroy');
+	
+	// App Roles Management Routes
+	Route::get('apps/{app}/roles', [AppRoleController::class, 'index'])->name('app-roles.index');
+	Route::post('apps/{app}/roles', [AppRoleController::class, 'store'])->name('app-roles.store');
+	Route::put('apps/{app}/roles/{role}', [AppRoleController::class, 'update'])->name('app-roles.update');
+	Route::delete('apps/{app}/roles/{role}', [AppRoleController::class, 'destroy'])->name('app-roles.destroy');
 });

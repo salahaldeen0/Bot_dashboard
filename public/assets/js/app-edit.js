@@ -197,6 +197,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 alertEl.style.display = "none";
                 alertEl.innerText = "";
             }
+
+            // Load roles into dropdown
+            loadRolesForDropdown();
+
             modal.show();
         });
     }
@@ -715,8 +719,319 @@ function editUser(userId, name, phone) {
         alertEl.innerText = "";
     }
 
+    // Load roles into dropdown
+    loadRolesForDropdown();
+
     // Show modal
     const addUserModalEl = document.getElementById("addUserModal");
     const modal = new bootstrap.Modal(addUserModalEl);
     modal.show();
+}
+
+// --- Roles Management Functions ---
+
+// Load roles when roles tab is shown
+document.addEventListener("DOMContentLoaded", function () {
+    const rolesTab = document.querySelector('a[href="#roles"]');
+    if (rolesTab) {
+        rolesTab.addEventListener("shown.bs.tab", function () {
+            loadRoles();
+        });
+    }
+});
+
+// Add Role modal handling
+document.addEventListener("DOMContentLoaded", function () {
+    const addRoleBtn = document.getElementById("addRoleBtn");
+    const submitAddRoleBtn = document.getElementById("submitAddRoleBtn");
+    const addRoleModalEl = document.getElementById("addRoleModal");
+
+    if (addRoleBtn && addRoleModalEl) {
+        addRoleBtn.addEventListener("click", function () {
+            // Reset to create mode
+            document.getElementById("editRoleId").value = "";
+            document.getElementById("addRoleModalLabel").textContent =
+                "Add Role";
+            document.getElementById("submitAddRoleBtn").textContent =
+                "Create Role";
+
+            // Clear form
+            const form = document.getElementById("addRoleForm");
+            if (form) form.reset();
+            const alertEl = document.getElementById("addRoleAlert");
+            if (alertEl) {
+                alertEl.style.display = "none";
+                alertEl.innerText = "";
+            }
+
+            // Show modal
+            const modal = new bootstrap.Modal(addRoleModalEl);
+            modal.show();
+        });
+    }
+
+    if (submitAddRoleBtn) {
+        submitAddRoleBtn.addEventListener("click", function () {
+            const roleName = document
+                .getElementById("newRoleName")
+                ?.value?.trim();
+            const description = document
+                .getElementById("newRoleDescription")
+                ?.value?.trim();
+            const roleId = document.getElementById("editRoleId")?.value;
+            const isEditMode = roleId && roleId !== "";
+            const alertEl = document.getElementById("addRoleAlert");
+
+            if (!roleName) {
+                if (alertEl) {
+                    alertEl.className = "alert alert-danger mt-2";
+                    alertEl.style.display = "block";
+                    alertEl.innerText = "Please provide a role name.";
+                } else {
+                    alert("Please provide a role name.");
+                }
+                return;
+            }
+
+            // Disable button while submitting
+            submitAddRoleBtn.disabled = true;
+            submitAddRoleBtn.innerHTML = isEditMode
+                ? '<span class="spinner-border spinner-border-sm me-2"></span>Updating...'
+                : '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+
+            // Determine endpoint and method
+            const url = isEditMode
+                ? `/apps/${currentAppId}/roles/${roleId}`
+                : `/apps/${currentAppId}/roles`;
+            const method = isEditMode ? "PUT" : "POST";
+
+            // Call backend to create/update role
+            fetch(url, {
+                method: method,
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    role_name: roleName,
+                    description: description,
+                }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        if (alertEl) {
+                            alertEl.className = "alert alert-success mt-2";
+                            alertEl.style.display = "block";
+                            alertEl.innerText = data.message;
+                        }
+
+                        // Reload roles list and close modal
+                        setTimeout(() => {
+                            const modal =
+                                bootstrap.Modal.getInstance(addRoleModalEl);
+                            if (modal) modal.hide();
+                            loadRoles();
+                        }, 800);
+                    } else {
+                        if (alertEl) {
+                            alertEl.className = "alert alert-danger mt-2";
+                            alertEl.style.display = "block";
+                            alertEl.innerText =
+                                data.message ||
+                                `Failed to ${
+                                    isEditMode ? "update" : "create"
+                                } role`;
+                        }
+                        submitAddRoleBtn.disabled = false;
+                        submitAddRoleBtn.innerHTML = isEditMode
+                            ? "Update Role"
+                            : "Create Role";
+                    }
+                })
+                .catch((error) => {
+                    console.error(
+                        `Error ${isEditMode ? "updating" : "creating"} role:`,
+                        error
+                    );
+                    if (alertEl) {
+                        alertEl.className = "alert alert-danger mt-2";
+                        alertEl.style.display = "block";
+                        alertEl.innerText = `Failed to ${
+                            isEditMode ? "update" : "create"
+                        } role. Please try again.`;
+                    }
+                    submitAddRoleBtn.disabled = false;
+                    submitAddRoleBtn.innerHTML = isEditMode
+                        ? "Update Role"
+                        : "Create Role";
+                });
+        });
+    }
+});
+
+function loadRoles() {
+    if (!currentAppId) return;
+
+    document.getElementById("roles-loading").style.display = "block";
+    document.getElementById("roles-container").style.display = "none";
+
+    fetch(`/apps/${currentAppId}/roles`, {
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+        },
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                renderRoles(data.data);
+            }
+            document.getElementById("roles-loading").style.display = "none";
+            document.getElementById("roles-container").style.display = "block";
+        })
+        .catch((error) => {
+            console.error("Error loading roles:", error);
+            document.getElementById("roles-loading").style.display = "none";
+            alert("Failed to load roles. Please try again.");
+        });
+}
+
+function renderRoles(roles) {
+    const tbody = document.getElementById("roles-table-body");
+    tbody.innerHTML = "";
+
+    if (roles.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center py-5">
+                    <i class="material-icons text-muted" style="font-size: 48px;">group</i>
+                    <p class="text-muted mt-3">No roles found. Click "Add Role" to create one.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    roles.forEach((role) => {
+        const row = document.createElement("tr");
+        const createdDate = new Date(role.created_at).toLocaleDateString();
+
+        row.innerHTML = `
+            <td>
+                <div class="d-flex px-2 py-1">
+                    <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">${role.role_name}</h6>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <p class="text-xs text-secondary mb-0">${
+                    role.description || "-"
+                }</p>
+            </td>
+            <td>
+                <p class="text-xs text-secondary mb-0">${createdDate}</p>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-info mb-0 me-1" onclick="editRole(${
+                    role.id
+                }, '${role.role_name.replace(/'/g, "\\'")}', '${(
+            role.description || ""
+        ).replace(/'/g, "\\'")}')" title="Edit role">
+                    <i class="material-icons text-sm">edit</i>
+                </button>
+                <button type="button" class="btn btn-sm btn-danger mb-0" onclick="deleteRole(${
+                    role.id
+                })" title="Delete role">
+                    <i class="material-icons text-sm">delete</i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function editRole(roleId, roleName, description) {
+    // Populate modal with role data
+    document.getElementById("editRoleId").value = roleId;
+    document.getElementById("newRoleName").value = roleName;
+    document.getElementById("newRoleDescription").value = description;
+
+    // Update modal title and button text
+    document.getElementById("addRoleModalLabel").textContent = "Edit Role";
+    document.getElementById("submitAddRoleBtn").textContent = "Update Role";
+
+    // Clear any previous alerts
+    const alertEl = document.getElementById("addRoleAlert");
+    if (alertEl) {
+        alertEl.style.display = "none";
+        alertEl.innerText = "";
+    }
+
+    // Show modal
+    const addRoleModalEl = document.getElementById("addRoleModal");
+    const modal = new bootstrap.Modal(addRoleModalEl);
+    modal.show();
+}
+
+function deleteRole(roleId) {
+    if (!confirm("Are you sure you want to delete this role?")) {
+        return;
+    }
+
+    fetch(`/apps/${currentAppId}/roles/${roleId}`, {
+        method: "DELETE",
+        headers: {
+            "X-CSRF-TOKEN": csrfToken,
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+        },
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                loadRoles();
+            } else {
+                alert("Failed to delete role: " + data.message);
+            }
+        })
+        .catch((error) => {
+            console.error("Error deleting role:", error);
+            alert("Failed to delete role. Please try again.");
+        });
+}
+
+// Load roles for user modal dropdown
+function loadRolesForDropdown() {
+    if (!currentAppId) return;
+
+    const roleSelect = document.getElementById("newUserRole");
+    if (!roleSelect) return;
+
+    // Keep the first "Select Role (optional)" option and clear the rest
+    roleSelect.innerHTML = '<option value="">Select Role (optional)</option>';
+
+    fetch(`/apps/${currentAppId}/roles`, {
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+        },
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success && data.data.length > 0) {
+                data.data.forEach((role) => {
+                    const option = document.createElement("option");
+                    option.value = role.id;
+                    option.textContent = role.role_name;
+                    roleSelect.appendChild(option);
+                });
+            }
+        })
+        .catch((error) => {
+            console.error("Error loading roles for dropdown:", error);
+        });
 }
