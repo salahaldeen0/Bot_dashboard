@@ -10,13 +10,7 @@
             </ol>
             <h6 class="font-weight-bolder mb-0">{{ $titlePage }}</h6>
         </nav>
-        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
-            <div class="ms-md-auto pe-md-3 d-flex align-items-center">
-                <div class="input-group input-group-outline">
-                    <label class="form-label">Type here...</label>
-                    <input type="text" class="form-control">
-                </div>
-            </div>
+        <div class="mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
             <form method="POST" action="{{ route('logout') }}" class="d-none" id="logout-form">
                 @csrf
             </form>

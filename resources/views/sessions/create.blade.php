@@ -21,10 +21,6 @@
                                     <div class="bg-gradient-primary shadow-primary border-radius-lg py-3 pe-1">
                                         <h4 class="text-white font-weight-bolder text-center mt-2 mb-0">Sign in</h4>
                                         <div class="row mt-3">
-                                            <h6 class='text-white text-center'>
-                                                <span class="font-weight-normal">Email:</span> admin@material.com
-                                                <br>
-                                                <span class="font-weight-normal">Password:</span> secret</h6>
                                             <div class="col-2 text-center ms-auto">
                                                 <a class="btn btn-link px-3" href="javascript:;">
                                                     <i class="fa fa-facebook text-white text-lg"></i>
