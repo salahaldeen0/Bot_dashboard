@@ -2009,60 +2009,107 @@ textarea.form-control-lg {
   border-radius: 0.5rem; }
 
 .form-check {
-  display: block;
-  min-height: auto;
-  padding-left: 1.73em;
-  margin-bottom: 0.125rem; }
-  .form-check .form-check-input {
-    float: left;
-    margin-left: -1.73em; }
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
 
 .form-check-input {
-  width: 1.23em;
-  height: 1.23em;
-  margin-top: 0.135em;
-  vertical-align: top;
-  background-color: #fff;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  border: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  appearance: none;
   -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
-  -webkit-print-color-adjust: exact;
-          color-adjust: exact;
-  transition: background-color 0.25s ease, border-color 0.25s ease, background-position 0.15s ease-in-out, opacity 0.15s ease-out, box-shadow 0.15s ease-in-out; }
-  @media (prefers-reduced-motion: reduce) {
-    .form-check-input {
-      transition: none; } }
-  .form-check-input[type="checkbox"] {
-    border-radius: 0.35rem; }
-  .form-check-input[type="radio"] {
-    border-radius: 50%; }
-  .form-check-input:active {
-    filter: brightness(99%); }
-  .form-check-input:focus {
-    border-color: none;
-    outline: 0;
-    box-shadow: none; }
+  flex-shrink: 0;
+}
+
+.form-check-input:hover {
+  border-color: #9ca3af;
+  background-color: #f9fafb;
+}
+
+.form-check-input:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-color: #3b82f6;
+}
+
+.form-check-input:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.form-check-input:checked::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 0.375rem;
+  height: 0.625rem;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.form-check-input:disabled {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-input:disabled:hover {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.form-check-input:disabled ~ .form-check-label {
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .form-check-input {
+    background-color: #374151;
+    border-color: #4b5563;
+  }
+  
+  .form-check-input:hover {
+    background-color: #4b5563;
+    border-color: #6b7280;
+  }
+  
   .form-check-input:checked {
-    background-color: transparent;
-    border-color: transparent; }
-    .form-check-input:checked[type="checkbox"] {
-      background-image: linear-gradient(195deg, #EC407A 0%, #D81B60 100%); }
-    .form-check-input:checked[type="radio"] {
-      background-image: linear-gradient(195deg, #EC407A 0%, #D81B60 100%); }
-  .form-check-input[type="checkbox"]:indeterminate {
-    background-color: #e91e63;
-    border-color: #e91e63;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/%3e%3c/svg%3e"); }
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+  }
+  
   .form-check-input:disabled {
-    pointer-events: none;
-    filter: none;
-    opacity: 0.5; }
-  .form-check-input[disabled] ~ .form-check-label, .form-check-input:disabled ~ .form-check-label {
-    opacity: 0.5; }
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .form-check-input {
+    transition: none;
+  }
+}
+
+/* Focus visible for better accessibility */
+.form-check-input:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
 
 .form-switch {
   padding-left: 2.375rem; }

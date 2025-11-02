@@ -157,19 +157,26 @@ class AppController extends Controller
         try {
             // Test the connection
             if ($this->databaseService->testConnection($app)) {
-                // Create schema_table in the external database
-                $this->databaseService->createSchemaTable($app);
+                // Create all AI bot tables in the external database
+                // This includes: ai_bot_schema_table, ai_bot_roles, ai_bot_users, ai_bot_permissions
+                $this->databaseService->createAllBotTables($app);
                 
-                // Sync tables from external database to local schema_tables
+                // Sync tables from external database to ai_bot_schema_table
                 $this->databaseService->syncTables($app);
                 
-                // Mark as connected
-                $app->update(['is_connected' => true]);
+                // Get table count from external database
+                $tableCount = $this->databaseService->getSchemaTableCount($app);
+                
+                // Mark as connected and synced
+                $app->update([
+                    'is_connected' => true,
+                    'has_synced_schema' => true
+                ]);
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Database connected successfully! Schema tables have been synced.',
-                    'table_count' => $app->schemaTables()->count()
+                    'message' => 'Database connected successfully! All AI bot tables have been created and schema tables synced.',
+                    'table_count' => $tableCount
                 ]);
             }
         } catch (Exception $e) {

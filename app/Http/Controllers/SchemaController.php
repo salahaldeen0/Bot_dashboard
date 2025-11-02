@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\App;
-use App\Models\SchemaTable;
 use App\Services\DatabaseService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class SchemaController extends Controller
@@ -18,24 +18,42 @@ class SchemaController extends Controller
     }
 
     /**
-     * Get paginated tables for an app
+     * Get paginated tables for an app from external database
      */
     public function getTables(Request $request, $appId)
     {
         $app = App::findOrFail($appId);
         
-        $perPage = $request->get('per_page', 10);
-        $search = $request->get('search', '');
-
-        $query = $app->schemaTables();
-
-        if ($search) {
-            $query->where('table_name', 'LIKE', "%{$search}%");
+        if (!$app->is_connected) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database not connected'
+            ], 400);
         }
+        
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search', '') ?? '';
+        $page = $request->get('page', 1);
 
-        $tables = $query->orderBy('table_name')->paginate($perPage);
-
-        return response()->json($tables);
+        try {
+            $result = $this->databaseService->getSchemaTables($app, $page, $perPage, $search);
+            
+            // Add success flag to the response
+            $result['success'] = true;
+            
+            return response()->json($result);
+        } catch (Exception $e) {
+            Log::error('Failed to fetch schema tables for app ' . $appId . ': ' . $e->getMessage(), [
+                'exception' => $e,
+                'app_id' => $appId,
+                'database_type' => $app->database_type
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch tables: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -64,7 +82,7 @@ class SchemaController extends Controller
     }
 
     /**
-     * Update table keywords
+     * Update table keywords in external database
      */
     public function updateKeywords(Request $request, $appId, $tableId)
     {
@@ -73,68 +91,97 @@ class SchemaController extends Controller
         ]);
 
         $app = App::findOrFail($appId);
-        $schemaTable = SchemaTable::where('app_id', $appId)
-            ->where('id', $tableId)
-            ->firstOrFail();
+        
+        if (!$app->is_connected) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database not connected'
+            ], 400);
+        }
 
-        $schemaTable->update([
-            'keywords' => $request->keywords,
-        ]);
-
-        // Update in external database
         try {
+            // Get the table info from external database
+            $schemaTable = $this->databaseService->getSchemaTable($app, $tableId);
+            
+            if (!$schemaTable) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Table not found'
+                ], 404);
+            }
+
+            // Update in external database
             $this->databaseService->updateExternalSchemaTable(
                 $app,
-                $schemaTable->table_name,
+                $schemaTable['table_name'],
                 $request->keywords,
-                $schemaTable->active_flag
+                $schemaTable['active_flag']
             );
+
+            // Get updated table
+            $updatedTable = $this->databaseService->getSchemaTable($app, $tableId);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Keywords updated successfully',
-                'data' => $schemaTable
+                'data' => $updatedTable
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Keywords saved locally but failed to update external database: ' . $e->getMessage()
+                'message' => 'Failed to update keywords: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Toggle active flag
+     * Toggle active flag in external database
      */
     public function toggleActive($appId, $tableId)
     {
         $app = App::findOrFail($appId);
-        $schemaTable = SchemaTable::where('app_id', $appId)
-            ->where('id', $tableId)
-            ->firstOrFail();
+        
+        if (!$app->is_connected) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database not connected'
+            ], 400);
+        }
 
-        $schemaTable->update([
-            'active_flag' => !$schemaTable->active_flag,
-        ]);
-
-        // Update in external database
         try {
+            // Get the table info from external database
+            $schemaTable = $this->databaseService->getSchemaTable($app, $tableId);
+            
+            if (!$schemaTable) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Table not found'
+                ], 404);
+            }
+
+            // Toggle active flag
+            $newActiveFlag = !$schemaTable['active_flag'];
+
+            // Update in external database
             $this->databaseService->updateExternalSchemaTable(
                 $app,
-                $schemaTable->table_name,
-                $schemaTable->keywords,
-                $schemaTable->active_flag
+                $schemaTable['table_name'],
+                $schemaTable['keywords'],
+                $newActiveFlag
             );
+
+            // Get updated table
+            $updatedTable = $this->databaseService->getSchemaTable($app, $tableId);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Active status updated successfully',
-                'data' => $schemaTable
+                'data' => $updatedTable
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Status saved locally but failed to update external database: ' . $e->getMessage()
+                'message' => 'Failed to update active status: ' . $e->getMessage()
             ], 500);
         }
     }

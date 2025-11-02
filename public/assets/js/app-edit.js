@@ -341,6 +341,17 @@ function loadTables(page = 1) {
     )
         .then((response) => response.json())
         .then((data) => {
+            console.log("Schema tables response:", data);
+
+            if (data.success === false) {
+                alert(
+                    data.message || "Failed to load tables. Please try again."
+                );
+                document.getElementById("schema-loading").style.display =
+                    "none";
+                return;
+            }
+
             renderTables(data);
             renderPagination(data);
             currentPage = page;
@@ -1136,11 +1147,16 @@ function showNoRoleSelected() {
 }
 
 function loadPermissionsForRole(roleId) {
-    if (!currentAppId || !roleId) return;
+    if (!currentAppId || !roleId) {
+        console.log("Missing appId or roleId", { currentAppId, roleId });
+        return;
+    }
 
     document.getElementById("permissions-no-role").style.display = "none";
     document.getElementById("permissions-loading").style.display = "block";
     document.getElementById("permissions-container").style.display = "none";
+
+    console.log("Loading permissions for role:", roleId);
 
     fetch(`/apps/${currentAppId}/roles/${roleId}/permissions`, {
         headers: {
@@ -1148,10 +1164,16 @@ function loadPermissionsForRole(roleId) {
             Accept: "application/json",
         },
     })
-        .then((response) => response.json())
+        .then((response) => {
+            console.log("Response status:", response.status);
+            return response.json();
+        })
         .then((data) => {
+            console.log("Permissions data received:", data);
             if (data.success) {
                 renderPermissions(data.role, data.tables);
+            } else {
+                console.error("API returned success=false:", data);
             }
             document.getElementById("permissions-loading").style.display =
                 "none";
@@ -1167,13 +1189,26 @@ function loadPermissionsForRole(roleId) {
 }
 
 function renderPermissions(role, tables) {
+    console.log("Rendering permissions for role:", role);
+    console.log("Tables to render:", tables);
+
     const tbody = document.getElementById("permissions-table-body");
     const roleNameSpan = document.getElementById("selectedRoleName");
+
+    if (!tbody) {
+        console.error("permissions-table-body element not found");
+        return;
+    }
+
+    if (!roleNameSpan) {
+        console.error("selectedRoleName element not found");
+        return;
+    }
 
     roleNameSpan.textContent = role.role_name;
     tbody.innerHTML = "";
 
-    if (tables.length === 0) {
+    if (!tables || tables.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="5" class="text-center py-5">
@@ -1187,7 +1222,8 @@ function renderPermissions(role, tables) {
 
     tables.forEach((table) => {
         const row = document.createElement("tr");
-        const actions = table.actions || [];
+        // Ensure actions is an array
+        const actions = Array.isArray(table.actions) ? table.actions : [];
 
         row.innerHTML = `
             <td>
@@ -1199,28 +1235,28 @@ function renderPermissions(role, tables) {
             </td>
             <td class="text-center">
                 <div class="form-check d-flex justify-content-center">
-                    <input class="form-check-input permission-checkbox" type="checkbox" 
+                    <input class="permission-checkbox" type="checkbox" 
                            data-table="${table.table_name}" data-action="create"
                            ${actions.includes("create") ? "checked" : ""}>
                 </div>
             </td>
             <td class="text-center">
                 <div class="form-check d-flex justify-content-center">
-                    <input class="form-check-input permission-checkbox" type="checkbox" 
+                    <input class="permission-checkbox " type="checkbox" 
                            data-table="${table.table_name}" data-action="read"
                            ${actions.includes("read") ? "checked" : ""}>
                 </div>
             </td>
             <td class="text-center">
                 <div class="form-check d-flex justify-content-center">
-                    <input class="form-check-input permission-checkbox" type="checkbox" 
+                    <input class="permission-checkbox" type="checkbox" 
                            data-table="${table.table_name}" data-action="update"
                            ${actions.includes("update") ? "checked" : ""}>
                 </div>
             </td>
             <td class="text-center">
                 <div class="form-check d-flex justify-content-center">
-                    <input class="form-check-input permission-checkbox" type="checkbox" 
+                    <input class="permission-checkbox" type="checkbox" 
                            data-table="${table.table_name}" data-action="delete"
                            ${actions.includes("delete") ? "checked" : ""}>
                 </div>

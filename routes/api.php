@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AppApiController;
+use App\Http\Controllers\BotDataController;
 
 // Test route to verify API is working
 Route::get('/test', function () {
@@ -36,4 +37,20 @@ Route::prefix('apps')->group(function () {
     Route::get('/', [AppApiController::class, 'index']);
     Route::get('/stats', [AppApiController::class, 'stats']);
     Route::get('/{id}', [AppApiController::class, 'show']);
+    
+    // Bot data management routes
+    Route::get('/{appId}/bot/stats', [BotDataController::class, 'getStats']);
+    Route::get('/{appId}/bot/tables/check', [BotDataController::class, 'checkTables']);
+    
+    // Role management
+    Route::get('/{appId}/bot/roles', [BotDataController::class, 'getRoles']);
+    Route::post('/{appId}/bot/roles', [BotDataController::class, 'createRole']);
+    
+    // User management
+    Route::get('/{appId}/bot/users', [BotDataController::class, 'getUsers']);
+    Route::post('/{appId}/bot/users', [BotDataController::class, 'createUser']);
+    
+    // Permission management
+    Route::get('/{appId}/bot/permissions', [BotDataController::class, 'getPermissionsByRole']);
+    Route::post('/{appId}/bot/permissions', [BotDataController::class, 'createPermission']);
 });
