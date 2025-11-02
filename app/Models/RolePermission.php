@@ -4,19 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AppUser extends Model
+class RolePermission extends Model
 {
     protected $fillable = [
-        'app_id',
-        'name',
-        'phone',
         'role_id',
+        'permission',
+        'actions',
     ];
 
-    public function app()
-    {
-        return $this->belongsTo(App::class);
-    }
+    protected $casts = [
+        'actions' => 'array',
+    ];
 
     public function role()
     {

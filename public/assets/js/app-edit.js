@@ -211,6 +211,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const phone = document
                 .getElementById("newUserPhone")
                 ?.value?.trim();
+            const roleId = document
+                .getElementById("newUserRole")
+                ?.value?.trim();
             const userId = document.getElementById("editUserId")?.value;
             const isEditMode = userId && userId !== "";
             const alertEl = document.getElementById("addUserAlert");
@@ -238,6 +241,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 : `/apps/${currentAppId}/users`;
             const method = isEditMode ? "PUT" : "POST";
 
+            // Prepare request body
+            const requestBody = { name, phone };
+            if (roleId) {
+                requestBody.role_id = roleId;
+            }
+
             // Call backend to create/update user
             fetch(url, {
                 method: method,
@@ -247,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     Accept: "application/json",
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ name, phone }),
+                body: JSON.stringify(requestBody),
             })
                 .then((response) => response.json())
                 .then((data) => {
@@ -621,7 +630,7 @@ function renderUsers(users) {
     if (users.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="text-center py-5">
+                <td colspan="5" class="text-center py-5">
                     <i class="material-icons text-muted" style="font-size: 48px;">people</i>
                     <p class="text-muted mt-3">No users found. Click "Add User" to create one.</p>
                 </td>
@@ -649,11 +658,18 @@ function renderUsers(users) {
                 <p class="text-xs text-secondary mb-0">${createdDate}</p>
             </td>
             <td class="text-center">
+                <span class="badge badge-sm ${
+                    user.role_name !== "No Role"
+                        ? "bg-gradient-primary"
+                        : "bg-gradient-secondary"
+                }">${user.role_name}</span>
+            </td>
+            <td class="text-center">
                 <button type="button" class="btn btn-sm btn-info mb-0 me-1" onclick="editUser(${
                     user.id
-                }, '${user.name.replace(/'/g, "\\'")}', '${
-            user.phone
-        }')" title="Edit user">
+                }, '${user.name.replace(/'/g, "\\'")}', '${user.phone}', ${
+            user.role_id || "null"
+        })" title="Edit user">
                     <i class="material-icons text-sm">edit</i>
                 </button>
                 <button type="button" class="btn btn-sm btn-danger mb-0" onclick="deleteUser(${
@@ -702,7 +718,7 @@ function deleteUser(userId) {
         });
 }
 
-function editUser(userId, name, phone) {
+function editUser(userId, name, phone, roleId) {
     // Populate modal with user data
     document.getElementById("editUserId").value = userId;
     document.getElementById("newUserName").value = name;
@@ -719,8 +735,12 @@ function editUser(userId, name, phone) {
         alertEl.innerText = "";
     }
 
-    // Load roles into dropdown
-    loadRolesForDropdown();
+    // Load roles into dropdown and set selected role
+    loadRolesForDropdown(() => {
+        if (roleId) {
+            document.getElementById("newUserRole").value = roleId;
+        }
+    });
 
     // Show modal
     const addUserModalEl = document.getElementById("addUserModal");
@@ -1005,7 +1025,7 @@ function deleteRole(roleId) {
 }
 
 // Load roles for user modal dropdown
-function loadRolesForDropdown() {
+function loadRolesForDropdown(callback) {
     if (!currentAppId) return;
 
     const roleSelect = document.getElementById("newUserRole");
@@ -1030,8 +1050,243 @@ function loadRolesForDropdown() {
                     roleSelect.appendChild(option);
                 });
             }
+            // Call callback if provided
+            if (callback && typeof callback === "function") {
+                callback();
+            }
         })
         .catch((error) => {
             console.error("Error loading roles for dropdown:", error);
+        });
+}
+
+// --- Permissions Management Functions ---
+
+let currentSelectedRoleId = null;
+
+// Load permissions when permissions tab is shown
+document.addEventListener("DOMContentLoaded", function () {
+    const permissionsTab = document.querySelector('a[href="#permissions"]');
+    if (permissionsTab) {
+        permissionsTab.addEventListener("shown.bs.tab", function () {
+            loadRolesForPermissions();
+        });
+    }
+
+    // Handle role selection change
+    const roleSelect = document.getElementById("roleSelectPermissions");
+    if (roleSelect) {
+        roleSelect.addEventListener("change", function () {
+            const roleId = this.value;
+            if (roleId) {
+                currentSelectedRoleId = roleId;
+                loadPermissionsForRole(roleId);
+            } else {
+                currentSelectedRoleId = null;
+                showNoRoleSelected();
+            }
+        });
+    }
+
+    // Handle save permissions button
+    const savePermissionsBtn = document.getElementById("savePermissionsBtn");
+    if (savePermissionsBtn) {
+        savePermissionsBtn.addEventListener("click", function () {
+            savePermissions();
+        });
+    }
+});
+
+function loadRolesForPermissions() {
+    if (!currentAppId) return;
+
+    const roleSelect = document.getElementById("roleSelectPermissions");
+    if (!roleSelect) return;
+
+    // Clear and reset
+    roleSelect.innerHTML = '<option value="">Choose a role...</option>';
+    showNoRoleSelected();
+
+    fetch(`/apps/${currentAppId}/roles`, {
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+        },
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success && data.data.length > 0) {
+                data.data.forEach((role) => {
+                    const option = document.createElement("option");
+                    option.value = role.id;
+                    option.textContent = role.role_name;
+                    roleSelect.appendChild(option);
+                });
+            }
+        })
+        .catch((error) => {
+            console.error("Error loading roles for permissions:", error);
+        });
+}
+
+function showNoRoleSelected() {
+    document.getElementById("permissions-no-role").style.display = "block";
+    document.getElementById("permissions-loading").style.display = "none";
+    document.getElementById("permissions-container").style.display = "none";
+}
+
+function loadPermissionsForRole(roleId) {
+    if (!currentAppId || !roleId) return;
+
+    document.getElementById("permissions-no-role").style.display = "none";
+    document.getElementById("permissions-loading").style.display = "block";
+    document.getElementById("permissions-container").style.display = "none";
+
+    fetch(`/apps/${currentAppId}/roles/${roleId}/permissions`, {
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+        },
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                renderPermissions(data.role, data.tables);
+            }
+            document.getElementById("permissions-loading").style.display =
+                "none";
+            document.getElementById("permissions-container").style.display =
+                "block";
+        })
+        .catch((error) => {
+            console.error("Error loading permissions:", error);
+            document.getElementById("permissions-loading").style.display =
+                "none";
+            alert("Failed to load permissions. Please try again.");
+        });
+}
+
+function renderPermissions(role, tables) {
+    const tbody = document.getElementById("permissions-table-body");
+    const roleNameSpan = document.getElementById("selectedRoleName");
+
+    roleNameSpan.textContent = role.role_name;
+    tbody.innerHTML = "";
+
+    if (tables.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-5">
+                    <i class="material-icons text-muted" style="font-size: 48px;">table_chart</i>
+                    <p class="text-muted mt-3">No active tables found. Please sync schema first.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tables.forEach((table) => {
+        const row = document.createElement("tr");
+        const actions = table.actions || [];
+
+        row.innerHTML = `
+            <td>
+                <div class="d-flex px-2 py-1">
+                    <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">${table.table_name}</h6>
+                    </div>
+                </div>
+            </td>
+            <td class="text-center">
+                <div class="form-check d-flex justify-content-center">
+                    <input class="form-check-input permission-checkbox" type="checkbox" 
+                           data-table="${table.table_name}" data-action="create"
+                           ${actions.includes("create") ? "checked" : ""}>
+                </div>
+            </td>
+            <td class="text-center">
+                <div class="form-check d-flex justify-content-center">
+                    <input class="form-check-input permission-checkbox" type="checkbox" 
+                           data-table="${table.table_name}" data-action="read"
+                           ${actions.includes("read") ? "checked" : ""}>
+                </div>
+            </td>
+            <td class="text-center">
+                <div class="form-check d-flex justify-content-center">
+                    <input class="form-check-input permission-checkbox" type="checkbox" 
+                           data-table="${table.table_name}" data-action="update"
+                           ${actions.includes("update") ? "checked" : ""}>
+                </div>
+            </td>
+            <td class="text-center">
+                <div class="form-check d-flex justify-content-center">
+                    <input class="form-check-input permission-checkbox" type="checkbox" 
+                           data-table="${table.table_name}" data-action="delete"
+                           ${actions.includes("delete") ? "checked" : ""}>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function savePermissions() {
+    if (!currentAppId || !currentSelectedRoleId) return;
+
+    const saveBtn = document.getElementById("savePermissionsBtn");
+    saveBtn.disabled = true;
+    saveBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+    // Collect all permissions from checkboxes
+    const permissionsData = {};
+    const checkboxes = document.querySelectorAll(".permission-checkbox");
+
+    checkboxes.forEach((checkbox) => {
+        const tableName = checkbox.dataset.table;
+        const action = checkbox.dataset.action;
+
+        if (!permissionsData[tableName]) {
+            permissionsData[tableName] = {
+                table_name: tableName,
+                actions: [],
+            };
+        }
+
+        if (checkbox.checked) {
+            permissionsData[tableName].actions.push(action);
+        }
+    });
+
+    // Convert to array
+    const permissions = Object.values(permissionsData);
+
+    fetch(`/apps/${currentAppId}/roles/${currentSelectedRoleId}/permissions`, {
+        method: "PUT",
+        headers: {
+            "X-CSRF-TOKEN": csrfToken,
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ permissions }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                alert("Permissions saved successfully!");
+                loadPermissionsForRole(currentSelectedRoleId);
+            } else {
+                alert("Failed to save permissions: " + data.message);
+            }
+        })
+        .catch((error) => {
+            console.error("Error saving permissions:", error);
+            alert("Failed to save permissions. Please try again.");
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML =
+                '<i class="material-icons me-1" style="font-size: 16px;">save</i> Save Permissions';
         });
 }

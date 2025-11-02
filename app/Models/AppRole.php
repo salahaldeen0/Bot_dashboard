@@ -16,4 +16,9 @@ class AppRole extends Model
     {
         return $this->belongsTo(App::class);
     }
+
+    public function permissions()
+    {
+        return $this->hasMany(RolePermission::class, 'role_id');
+    }
 }

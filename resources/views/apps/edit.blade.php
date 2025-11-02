@@ -341,6 +341,7 @@
                                                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Name</th>
                                                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Phone</th>
                                                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Created At</th>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Role</th>
                                                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Actions</th>
                                                                     </tr>
                                                                 </thead>
@@ -408,16 +409,60 @@
                                     <div class="tab-pane fade" id="permissions" role="tabpanel" aria-labelledby="permissions-tab">
                                         <div class="row mt-4">
                                             <div class="col-12">
-                                                <div class="text-center py-5">
-                                                    <div class="icon icon-lg icon-shape bg-gradient-danger shadow mx-auto mb-3">
-                                                        <i class="material-icons text-white" style="font-size: 48px;">security</i>
+                                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                                    <div>
+                                                        <h5 class="text-primary mb-1">Permissions Management</h5>
+                                                        <p class="text-sm text-muted mb-0">Configure table access permissions for each role</p>
                                                     </div>
-                                                    <h5 class="text-primary mt-3">Permissions Management</h5>
-                                                    <p class="text-muted">Permissions management features will be available in a future update.</p>
-                                                    <p class="text-sm text-secondary">This section will allow you to configure what each role can do in your application.</p>
-                                                    <div class="mt-4">
-                                                        <button type="button" class="btn btn-primary" disabled>
-                                                            <i class="material-icons me-1">settings</i> Configure Permissions
+                                                    <div class="d-flex align-items-center">
+                                                        <label for="roleSelectPermissions" class="me-2 mb-0 text-md">Select Role:</label>
+                                                        <select class="form-select form-select-sm" id="roleSelectPermissions" style="width: 400px;">
+                                                            <option value="">Choose a role...</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div id="permissions-no-role" class="text-center py-5">
+                                                    <i class="material-icons text-muted" style="font-size: 48px;">security</i>
+                                                    <p class="text-muted mt-3">Select a role to configure its permissions</p>
+                                                </div>
+                                                
+                                                <div id="permissions-loading" class="text-center py-5" style="display: none;">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                    <p class="mt-3 text-muted">Loading permissions...</p>
+                                                </div>
+
+                                                <div id="permissions-container" style="display: none;">
+                                                    <div class="alert alert-info">
+                                                        <i class="material-icons me-2" style="font-size: 18px; vertical-align: middle;">info</i>
+                                                        <span id="selectedRoleName" class="fw-bold"></span> - Check the actions this role can perform on each table
+                                                    </div>
+                                                    
+                                                    <div class="card">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-hover align-items-center mb-0">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Table Name</th>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Create</th>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Read</th>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Update</th>
+                                                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Delete</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="permissions-table-body">
+                                                                    <!-- Permissions will be loaded here via AJAX -->
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="d-flex justify-content-end mt-3">
+                                                        <button type="button" class="btn btn-primary" id="savePermissionsBtn">
+                                                            <i class="material-icons me-1" style="font-size: 16px;">save</i>
+                                                            Save Permissions
                                                         </button>
                                                     </div>
                                                 </div>

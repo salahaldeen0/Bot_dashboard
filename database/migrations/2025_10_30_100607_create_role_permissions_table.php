@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('role_permissions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('role_id')->constrained('app_roles')->onDelete('cascade');
+            $table->string('permission'); // Table name
+            $table->json('actions'); // Array of actions: create, read, update, delete
+            $table->timestamps();
+            
+            // Unique constraint: one permission record per role per table
+            $table->unique(['role_id', 'permission']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('role_permissions');
+    }
+};
