@@ -17,7 +17,7 @@
             <li class="nav-item mt-3">
                 <h6 class="ps-4 ms-2 text-uppercase text-xs text-white font-weight-bolder opacity-8">Main Menu</h6>
             </li>
-            <li class="nav-item">
+            {{-- <li class="nav-item">
                 <a class="nav-link text-white {{ $activePage == 'user-management' ? ' active bg-gradient-primary' : '' }} "
                     href="{{ route('user-management') }}">
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
@@ -25,7 +25,7 @@
                     </div>
                     <span class="nav-link-text ms-1">User Management</span>
                 </a>
-            </li>
+            </li> --}}
             <li class="nav-item">
                 <a class="nav-link text-white {{ $activePage == 'dashboard' ? ' active bg-gradient-primary' : '' }} "
                     href="{{ route('dashboard') }}">

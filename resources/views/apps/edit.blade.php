@@ -25,7 +25,7 @@
                             </div>
                             <div class="card-body">
                                 <!-- Progressive Onboarding Status -->
-                                <div class="alert {{ $app->canShowRolesTab() ? 'alert-success' : 'alert-info' }} alert-dismissible fade show" role="alert">
+                                {{-- <div class="alert {{ $app->canShowRolesTab() ? 'alert-success' : 'alert-info' }} alert-dismissible fade show" role="alert">
                                     <div class="d-flex align-items-start">
                                         <i class="material-icons me-3" style="font-size: 24px;">{{ $app->canShowRolesTab() ? 'check_circle' : 'info' }}</i>
                                         <div class="flex-grow-1">
@@ -64,7 +64,7 @@
                                         </div>
                                     </div>
                                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
+                                </div> --}}
 
                                 <!-- Navigation Tabs -->
                                 <div class="nav-wrapper position-relative end-0">
