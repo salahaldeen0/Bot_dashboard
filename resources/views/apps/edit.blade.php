@@ -127,7 +127,7 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="input-group input-group-outline mb-3 is-filled @error('app_name') is-focused @enderror">
-                                                    <label class="form-label">App Name *</label>
+                                                    <label class="form-label">App Name</label>
                                                     <input type="text" name="app_name" class="form-control @error('app_name') is-invalid @enderror" value="{{ old('app_name', $app->app_name) }}" required>
                                                     @error('app_name')
                                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -144,11 +144,11 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row">
+                                        <div class="row mt-3">
                                             <div class="col-12">
                                                 <div class="input-group input-group-outline mb-3 @if($app->description || old('description')) is-filled @endif @error('description') is-focused @enderror">
                                                     <label class="form-label">Description</label>
-                                                    <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3">{{ old('description', $app->description) }}</textarea>
+                                                    <input type="text" name="description" class="form-control @error('description') is-invalid @enderror" value="{{ old('description', $app->description) }}">
                                                     @error('description')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror

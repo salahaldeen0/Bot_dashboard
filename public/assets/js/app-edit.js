@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const databaseTypeSelect = document.getElementById("database_type");
     const portInput = document.getElementById("port");
 
+    if (portInput && portInput.value) {
+        portInput.dispatchEvent(new Event("input"));
+    }
     if (databaseTypeSelect && portInput) {
         databaseTypeSelect.addEventListener("change", function () {
             const defaultPorts = {
@@ -30,6 +33,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (defaultPorts[this.value] !== undefined) {
                 portInput.value = defaultPorts[this.value];
+
+                // Add/remove is-filled class to handle Material Design label positioning
+                const portInputGroup = portInput.closest(".input-group");
+                if (portInputGroup) {
+                    if (defaultPorts[this.value] !== "") {
+                        portInputGroup.classList.add("is-filled");
+                    } else {
+                        portInputGroup.classList.remove("is-filled");
+                    }
+                }
+
                 if (this.value === "sqlite") {
                     portInput.disabled = true;
                 } else {
